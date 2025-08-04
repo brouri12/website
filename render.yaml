@@ -32,8 +32,4 @@ databases:
     ipAllowList:
       - source: 0.0.0.0/0
         description: everywhere
-staticSites:
-  - name: symfony-assets
-    buildCommand: npm run build
-    publishPath: public/build
-    pullRequestPreviewsEnabled: false
+
