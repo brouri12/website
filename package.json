@@ -5,10 +5,13 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "build": "mkdir -p dist && cp -r index.html styles.css dist/"
+    "build": "mkdir -p dist && cp -r index.html styles.css dist/",
+    "test:config": "node tests/validate-render.js"
   },
   "dependencies": {},
-  "devDependencies": {},
+  "devDependencies": {
+    "js-yaml": "^4.1.0"
+  },
   "author": "",
   "license": "ISC"
 }

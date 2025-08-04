@@ -6,13 +6,17 @@ services:
     startCommand: heroku-php-apache2 public/
     envVars:
       - key: APP_ENV
-        value: prod
+        value: test
+        previewValue: test
       - key: APP_SECRET
         generateValue: true
       - key: DATABASE_URL
+        value: mysql://test_user:test_password123@mysql_dev:3306/stage_test
+        previewValue: mysql://test_user:test_password123@mysql_dev:3306/stage_test
         fromDatabase:
           name: symfony_db
           property: connectionString
+    healthCheckPath: /health
 
   - type: redis
     name: symfony-redis
@@ -24,6 +28,9 @@ databases:
     databaseName: stage
     user: test_user
     plan: free
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: everywhere
 
 staticSites:
   - name: symfony-assets
