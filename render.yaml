@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: symfony-app
+    env: php
+    buildCommand: composer install && npm install && npm run build
+    startCommand: heroku-php-apache2 public/
+    envVars:
+      - key: APP_ENV
+        value: prod
+      - key: APP_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: symfony_db
+          property: connectionString
+
+  - type: redis
+    name: symfony-redis
+    ipAllowList: []
+    plan: free
+
+databases:
+  - name: symfony_db
+    databaseName: stage
+    user: test_user
+    plan: free
+
+staticSites:
+  - name: symfony-assets
+    buildCommand: npm run build
+    publishPath: public/build
+    pullRequestPreviewsEnabled: false

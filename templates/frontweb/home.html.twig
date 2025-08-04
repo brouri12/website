@@ -159,10 +159,11 @@
 // Fonction pour ajouter au panier
 function addToCart(productId, productName, productPrice) {
     // @ts-nocheck
-    fetch('{{ path('app_panier_ajouter') }}', {
+    fetch(`/panier/ajouter`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
         },
         body: JSON.stringify({
             produit_id: productId,
