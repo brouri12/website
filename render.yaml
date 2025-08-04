@@ -1,10 +1,9 @@
 services:
   - type: web
     name: symfony-app
-    env: php
+    env: php-8.2 # Specify exact PHP version
     buildCommand: composer install && npm install && npm run build
     startCommand: heroku-php-apache2 public/
-    staticPublishPath: public/build
     envVars:
       - key: APP_ENV
         value: test
@@ -12,8 +11,6 @@ services:
       - key: APP_SECRET
         generateValue: true
       - key: DATABASE_URL
-        value: mysql://test_user:test_password123@mysql_dev:3306/stage_test
-        previewValue: mysql://test_user:test_password123@mysql_dev:3306/stage_test
         fromDatabase:
           name: symfony_db
           property: connectionString
@@ -29,6 +26,9 @@ databases:
     databaseName: stage
     user: test_user
     plan: free
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: everywhere
     ipAllowList:
       - source: 0.0.0.0/0
         description: everywhere
