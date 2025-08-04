@@ -1,7 +1,7 @@
 services:
   - type: web
     name: symfony-app
-    env: php-8.2 # Specify exact PHP version
+    runtime: php
     buildCommand: composer install && npm install && npm run build
     startCommand: heroku-php-apache2 public/
     envVars:
@@ -29,4 +29,4 @@ databases:
     ipAllowList:
       - source: 0.0.0.0/0
         description: everywhere
-  
+
