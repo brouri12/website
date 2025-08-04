@@ -1,0 +1,149 @@
+{% extends 'base.html.twig' %}
+{% block title %}Fiche Produit - {{ product.nomProduit }}{% endblock %}
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-8">
+        <div class="flex flex-col md:flex-row gap-8">
+            <div class="flex-shrink-0 w-full md:w-1/2">
+                {% if product.imageProduit %}
+                    {% set imgPath = product.imageProduit starts with 'apploads/' ? product.imageProduit : 'apploads/' ~ product.imageProduit %}
+                    <div id="zoom-container" style="overflow:hidden; border-radius:0.5rem; width:100%; max-width:500px; height:400px; margin:auto; position:relative; background:#fff;">
+                        <img id="zoom-image" src="{{ asset(imgPath) }}" alt="{{ product.nomProduit }}" style="width:100%; height:100%; object-fit:contain; display:block; cursor:zoom-in; transition: box-shadow 0.2s;">
+                        <button id="close-zoom-btn" type="button" style="display:none; position:absolute; top:10px; right:10px; z-index:10; background:#fff; border-radius:4px; border:1px solid #ccc; padding:4px 10px; font-size:0.9em; cursor:pointer;">Fermer le zoom</button>
+                    </div>
+             <script src="{{ asset('js/panzoom.min.js') }}"></script>
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const container = document.getElementById('zoom-container');
+                        const image = document.getElementById('zoom-image');
+                        const closeBtn = document.getElementById('close-zoom-btn');
+                        if (!window.Panzoom) return;
+                        // Ne pas activer sur mobile
+                        if (window.matchMedia('(pointer: coarse)').matches) return;
+                        const panzoom = Panzoom(container, {
+                            maxScale: 3,
+                            minScale: 1,
+                            contain: 'outside',
+                            step: 0.2,
+                            animate: true,
+                            cursor: '' // on gère le curseur manuellement
+                        });
+                        let zoomed = false;
+                        // Zoom au clic (centré sur le point cliqué)
+                        container.addEventListener('click', function(e) {
+                            if (e.target === closeBtn) return;
+                            const rect = container.getBoundingClientRect();
+                            const x = e.clientX - rect.left;
+                            const y = e.clientY - rect.top;
+                            if (!zoomed) {
+                                panzoom.zoomTo(x, y, 2);
+                                zoomed = true;
+                                image.style.cursor = 'move';
+                                closeBtn.style.display = 'block';
+                            } else {
+                                panzoom.reset();
+                                zoomed = false;
+                                image.style.cursor = 'zoom-in';
+                                closeBtn.style.display = 'none';
+                            }
+                        });
+                        // Molette = zoom (sans Ctrl)
+                        container.addEventListener('wheel', function(e) {
+                            e.preventDefault();
+                            panzoom.zoomWithWheel(e);
+                            zoomed = panzoom.getScale() > 1.01;
+                            image.style.cursor = zoomed ? 'move' : 'zoom-in';
+                            closeBtn.style.display = zoomed ? 'block' : 'none';
+                        }, { passive: false });
+                        // Drag = déplacement (géré automatiquement par Panzoom)
+                        // Curseur dynamique
+                        container.addEventListener('mouseenter', function() {
+                            image.style.cursor = zoomed ? 'move' : 'zoom-in';
+                        });
+                        container.addEventListener('mouseleave', function() {
+                            image.style.cursor = 'zoom-in';
+                        });
+                        // Bouton fermer le zoom
+                        closeBtn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            panzoom.reset();
+                            zoomed = false;
+                            image.style.cursor = 'zoom-in';
+                            closeBtn.style.display = 'none';
+                        });
+                    });
+                    </script>
+                {% else %}
+                    <div class="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="flex-1">
+                <h1 class="text-3xl font-bold mb-4">{{ product.nomProduit }}</h1>
+                <p class="text-gray-700 mb-4">{{ product.description }}</p>
+                <p class="text-xl font-semibold text-blue-600 mb-2">{{ product.prixUnitaire }} TND</p>
+                <p class="mb-2"><span class="font-semibold">Catégorie :</span> {{ product.categorie ? product.categorie.nomCategorie : '-' }}</p>
+                <p class="mb-2"><span class="font-semibold">Genre :</span> {{ product.genre|capitalize }}</p>
+                <p class="mb-2"><span class="font-semibold">Statut :</span> {{ product.statut|capitalize }}</p>
+                {% if product.produitSizes|length > 0 %}
+                    <div class="mb-2">
+                        <span class="font-semibold">Tailles disponibles :</span>
+                        <div class="flex flex-wrap gap-2 mt-1">
+                            {% for size in product.produitSizes %}
+                                {% if size.quantite > 0 %}
+                                    <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{{ size.size }}</span>
+                                {% else %}
+                                    <span class="inline-block bg-gray-100 text-gray-400 text-xs px-2 py-1 rounded-full line-through">{{ size.size }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                {% if product.promotions|length > 0 %}
+                    <p class="mb-2"><span class="font-semibold">Promotions :</span> {{ product.promotions|map(p => p.codePromotion)|join(', ') }}</p>
+                {% endif %}
+                <div class="mt-6">
+                    <button type="button" id="addToCartBtn" class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors duration-200 font-semibold">Ajouter au panier</button>
+                    <div id="addToCartMessage" class="mt-2 text-center text-sm"></div>
+                </div>
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const btn = document.getElementById('addToCartBtn');
+                    const msg = document.getElementById('addToCartMessage');
+                    btn.addEventListener('click', function() {
+                        fetch("{{ path('app_panier_ajouter') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            body: JSON.stringify({
+                                produit_id: {{ product.id }},
+                                quantite: 1
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                msg.textContent = 'Produit ajouté au panier !';
+                                msg.className = 'mt-2 text-center text-green-600 text-sm';
+                            } else {
+                                msg.textContent = data.message || 'Erreur lors de l\'ajout au panier.';
+                                msg.className = 'mt-2 text-center text-red-600 text-sm';
+                            }
+                        })
+                        .catch(() => {
+                            msg.textContent = 'Erreur lors de l\'ajout au panier.';
+                            msg.className = 'mt-2 text-center text-red-600 text-sm';
+                        });
+                    });
+                });
+                </script>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+{% block title %}Dashboard Admin{% endblock %}
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">Dashboard Administrateur</h1>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-blue-100 rounded-lg p-6 text-center shadow">
+            <div class="text-4xl font-bold text-blue-700">{{ nbProduits }}</div>
+            <div class="text-gray-700 mt-2">Produits</div>
+        </div>
+        <div class="bg-green-100 rounded-lg p-6 text-center shadow">
+            <div class="text-4xl font-bold text-green-700">{{ nbCategories }}</div>
+            <div class="text-gray-700 mt-2">Catégories</div>
+        </div>
+        <div class="bg-yellow-100 rounded-lg p-6 text-center shadow">
+            <div class="text-4xl font-bold text-yellow-700">{{ nbCommandes }}</div>
+            <div class="text-gray-700 mt-2">Commandes</div>
+        </div>
+        <div class="bg-purple-100 rounded-lg p-6 text-center shadow">
+            <div class="text-4xl font-bold text-purple-700">{{ nbClients }}</div>
+            <div class="text-gray-700 mt-2">Clients</div>
+        </div>
+        <div class="bg-orange-100 rounded-lg p-6 text-center shadow col-span-1 md:col-span-2 lg:col-span-1">
+            <div class="text-3xl font-bold text-orange-700">{{ fraisLivraisonMontant is not null ? (fraisLivraisonMontant ~ ' TND') : 'Non défini' }}</div>
+            <div class="text-gray-700 mt-2 mb-2">Frais de livraison actif</div>
+            {% if fraisLivraisonMontant is not null %}
+                <a href="{{ path('admin_frais_livraison') }}" class="inline-block mt-2 px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition">Modifier</a>
+            {% else %}
+                <a href="{{ path('admin_frais_livraison_ajouter') }}" class="inline-block mt-2 px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition">Ajouter un frais</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <a href="{{ path('admin_produits') }}" class="block bg-white border border-blue-200 rounded-lg p-4 text-center hover:bg-blue-50 transition">
+            <div class="font-semibold text-blue-700">Gérer les produits</div>
+        </a>
+        <a href="{{ path('admin_categories') }}" class="block bg-white border border-green-200 rounded-lg p-4 text-center hover:bg-green-50 transition">
+            <div class="font-semibold text-green-700">Gérer les catégories</div>
+        </a>
+        <a href="{{ path('admin_commandes') }}" class="block bg-white border border-yellow-200 rounded-lg p-4 text-center hover:bg-yellow-50 transition">
+            <div class="font-semibold text-yellow-700">Gérer les commandes</div>
+        </a>
+        <a href="{{ path('admin_clients') }}" class="block bg-white border border-purple-200 rounded-lg p-4 text-center hover:bg-purple-50 transition">
+            <div class="font-semibold text-purple-700">Gérer les clients</div>
+        </a>
+    </div>
+</div>
+{% endblock %} 

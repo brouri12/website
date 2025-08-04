@@ -1,0 +1,125 @@
+{# @ts-nocheck #}
+{% extends 'base.html.twig' %}
+{% block title %}Mes Commandes - MooDeek{% endblock %}
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">Mes Commandes</h1>
+    
+    {% if commandes|length > 0 %}
+        <div class="space-y-6">
+            {% for commande in commandes %}
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-4 mb-4">
+                                <h3 class="text-lg font-semibold text-gray-900">
+                                    Commande #{{ commande.id }}
+                                </h3>
+                                <span class="px-3 py-1 rounded-full text-sm font-medium
+                                    {% if commande.statutCommande == 'en_attente' %}
+                                        bg-yellow-100 text-yellow-800
+                                    {% elseif commande.statutCommande == 'confirmée' %}
+                                        bg-green-100 text-green-800
+                                    {% elseif commande.statutCommande == 'expediée' %}
+                                        bg-blue-100 text-blue-800
+                                    {% elseif commande.statutCommande == 'livrée' %}
+                                        bg-orange-100 text-orange-800
+                                    {% elseif commande.statutCommande == 'annulée' %}
+                                        bg-red-100 text-red-800
+                                    {% else %}
+                                        bg-gray-100 text-gray-800
+                                    {% endif %}">
+                                    {{ commande.statutCommande|capitalize }}
+                                </span>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                                <div>
+                                    <span class="font-medium">Date de commande:</span><br>
+                                    {{ commande.dateCommande|date('d/m/Y H:i') }}
+                                </div>
+                                <div>
+                                    <span class="font-medium">Montant total:</span><br>
+                                    {{ commande.montantTotal|number_format(2) }} TND
+                                </div>
+                                <div>
+                                    <span class="font-medium">Méthode de paiement:</span><br>
+                                    {{ commande.methodePaiement|title }}
+                                </div>
+                            </div>
+                            
+                            {% if commande.dateLivraisonEstimee %}
+                                <div class="mt-2 text-sm text-gray-600">
+                                    <span class="font-medium">Livraison estimée:</span>
+                                    {{ commande.dateLivraisonEstimee|date('d/m/Y') }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="flex flex-col space-y-2 mt-4 md:mt-0">
+                            <a href="{{ path('app_commande_show', {'id': commande.id}) }}" 
+                               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                Voir les détails
+                            </a>
+                            
+                            {% if commande.statutCommande == 'en_attente' %}
+                                <button onclick="annulerCommande({{ commande.id }})" 
+                                        class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-200">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                    Annuler la commande
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-12">
+            <svg class="w-24 h-24 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-600 mb-2">Aucune commande</h3>
+            <p class="text-gray-500 mb-6">Vous n'avez pas encore passé de commande.</p>
+            <a href="{{ path('shop') }}" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors duration-200">
+                Commencer à acheter
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+// @ts-nocheck
+function annulerCommande(commandeId) {
+    if (!confirm('Êtes-vous sûr de vouloir annuler cette commande ?')) {
+        return;
+    }
+    
+    fetch(`/commande/${commandeId}/annuler`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('Erreur lors de l\'annulation de la commande');
+    });
+}
+</script>
+{% endblock %} 

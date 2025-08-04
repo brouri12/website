@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+{% block title %}Mon Panier{% endblock %}
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">Mon Panier</h1>
+    <div class="flex flex-col md:flex-row gap-8">
+        <!-- Colonne produits -->
+        <div class="flex-1">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">Produits dans le panier</h2>
+                {% for item in panier_items %}
+                    <div class="flex items-center justify-between border-b py-4">
+                        <div class="flex items-center gap-4">
+                            {% if item.produit.imageProduit %}
+                                {% set imgPath = item.produit.imageProduit starts with 'apploads/' ? item.produit.imageProduit : 'apploads/' ~ item.produit.imageProduit %}
+                                <img src="{{ asset(imgPath) }}" alt="{{ item.produit.nomProduit }}" class="w-16 h-16 rounded-lg">
+                            {% else %}
+                                <div class="w-16 h-16 bg-gray-200 rounded"></div>
+                            {% endif %}
+                            <div>
+                                <div class="font-semibold">{{ item.produit.nomProduit }}</div>
+                                <div class="text-sm text-gray-500">
+                                    {% if item.taille %}Taille: {{ item.taille }}{% endif %}
+                                    {# Ajoute Couleur si tu as la propriété #}
+                                </div>
+                                <div class="flex items-center mt-2">
+                                    <button>-</button>
+                                    <span class="mx-2">{{ item.quantite }}</span>
+                                    <button>+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold">{{ (item.quantite * item.produit.prixUnitaire)|number_format(2) }} TND</div>
+                            <div class="text-xs text-gray-500">{{ item.produit.prixUnitaire }} TND chacun</div>
+                            <button class="text-red-600 text-xs mt-2">Supprimer</button>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-center text-gray-500 py-8">Votre panier est vide.</div>
+                {% endfor %}
+                <div class="flex justify-between mt-4">
+                    <a href="#" class="text-blue-600 text-sm">Mettre à jour le panier</a>
+                    <a href="#" class="text-gray-600 text-sm">Vider le panier</a>
+                </div>
+            </div>
+        </div>
+        <!-- Colonne résumé -->
+        <div class="w-full md:w-80">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">Résumé de la commande</h2>
+                <div class="flex justify-between mb-2">
+                    <span>Sous-total ({{ panier_items|length }} articles)</span>
+                    <span class="font-medium">{{ total|number_format(2) }} TND</span>
+                </div>
+                <div class="flex justify-between mb-2">
+                    <span>Livraison</span>
+                    <span>9.99 TND</span>
+                </div>
+                <div class="flex justify-between mb-2">
+                    <span>TVA (19%)</span>
+                    <span>{{ (total * 0.19)|number_format(2) }} TND</span>
+                </div>
+                <div class="flex justify-between text-lg font-bold mt-4">
+                    <span>Total</span>
+                    <span>{{ (total + 9.99 + (total * 0.19))|number_format(2) }} TND</span>
+                </div>
+                <div class="mt-4">
+                    <input type="text" placeholder="Entrez votre code" class="border px-2 py-1 rounded w-2/3">
+                    <button class="bg-gray-700 text-white px-3 py-1 rounded">Appliquer</button>
+                </div>
+                <button class="w-full bg-blue-600 text-white py-3 rounded mt-4">Passer la commande</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

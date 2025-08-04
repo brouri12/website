@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Facture Commande #{{ commande.id }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 14px; color: #222; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .logo { width: 160px; margin-bottom: 10px; }
+        .facture-title { font-size: 2em; color: #1E3A8A; margin-bottom: 0; }
+        .facture-date { color: #666; margin-top: 0; }
+        .info-block { margin-bottom: 18px; }
+        .info-block strong { width: 160px; display: inline-block; color: #1E3A8A; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .table th, .table td { border: 1px solid #bbb; padding: 8px; text-align: left; }
+        .table th { background: #e5e7eb; color: #1E3A8A; }
+        .total { font-weight: bold; font-size: 1.1em; text-align: right; margin-top: 20px; }
+        .footer { margin-top: 40px; text-align: center; color: #888; font-size: 0.95em; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="file://{{ project_dir }}/public/images/logo-removebg-preview.png" alt="Logo MooDeek" class="logo">
+        <h2 class="facture-title">Facture Commande #{{ commande.id }}</h2>
+        <p class="facture-date">Date : {{ commande.dateCommande|date('d/m/Y H:i') }}</p>
+    </div>
+    <div class="info-block">
+        <strong>Client :</strong> {{ commande.client ? commande.client.nom ~ ' ' ~ commande.client.prenom : '-' }}<br>
+        <strong>Adresse de livraison :</strong> {{ commande.adresseLivraison }}<br>
+        <strong>Statut :</strong> {{ commande.statutCommande|capitalize }}
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Produit</th>
+                <th>Taille</th>
+                <th>Quantité</th>
+                <th>Prix unitaire</th>
+                <th>Sous-total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ligne in commande.lignesCommande %}
+            <tr>
+                <td>{{ ligne.produit.nomProduit }}</td>
+                <td>{{ ligne.taille ?: '-' }}</td>
+                <td>{{ ligne.quantite }}</td>
+                <td>{{ ligne.prixUnitaire }} TND</td>
+                <td>{{ ligne.sousTotal }} TND</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p class="total">Frais de livraison : {{ frais_livraison_montant|number_format(2, '.', ' ') }} TND</p>
+    <p class="total">Montant total : {{ commande.montantTotal }} TND</p>
+    <div class="footer">
+        Merci pour votre confiance.<br>
+        MooDeek - www.moodeek.com
+    </div>
+</body>
+</html> 

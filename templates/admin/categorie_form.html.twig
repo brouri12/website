@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ isEdit ? 'Modifier' : 'Ajouter' }} une catégorie{% endblock %}
+{% block body %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <h1 class="text-2xl font-bold mb-6">{{ isEdit ? 'Modifier' : 'Ajouter' }} une catégorie</h1>
+    <a href="{{ path('admin_categories') }}" class="mb-4 inline-block px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Retour à la liste</a>
+    <a href="{{ path('admin_dashboard') }}" class="mb-4 ml-2 inline-block px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Dashboard</a>
+    {{ form_start(form) }}
+        <div class="mb-4">{{ form_row(form.nom_categorie) }}</div>
+        <div class="mb-4">{{ form_row(form.description_categorie) }}</div>
+        <div class="mb-4">{{ form_row(form.categorieParent) }}</div>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">{{ isEdit ? 'Enregistrer les modifications' : 'Ajouter la catégorie' }}</button>
+    {{ form_end(form) }}
+</div>
+{% endblock %} 

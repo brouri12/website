@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+{% block title %}Frais de livraison{% endblock %}
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-6">Gestion des frais de livraison</h1>
+    <a href="{{ path('admin_frais_livraison_ajouter') }}" class="mb-4 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Ajouter un frais</a>
+    <table class="min-w-full bg-white rounded shadow">
+        <thead>
+            <tr>
+                <th class="px-4 py-2">Zone</th>
+                <th class="px-4 py-2">Montant</th>
+                <th class="px-4 py-2">Description</th>
+                <th class="px-4 py-2">Actif</th>
+                <th class="px-4 py-2">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for frais in frais_livraison %}
+                <tr>
+                    <td class="border px-4 py-2">{{ frais.nomZone }}</td>
+                    <td class="border px-4 py-2">{{ frais.montant }} TND</td>
+                    <td class="border px-4 py-2">{{ frais.description }}</td>
+                    <td class="border px-4 py-2">
+                        {% if frais.actif %}
+                            <span class="text-green-600 font-bold">Oui</span>
+                        {% else %}
+                            <span class="text-gray-500">Non</span>
+                        {% endif %}
+                    </td>
+                    <td class="border px-4 py-2 text-center">
+                        <form method="post" action="{{ path('admin_frais_livraison_toggle', {'id': frais.id}) }}" style="display:inline;">
+                            <button type="submit" class="px-3 py-1 rounded {{ frais.actif ? 'bg-gray-400 text-white hover:bg-gray-500' : 'bg-green-600 text-white hover:bg-green-700' }}">
+                                {{ frais.actif ? 'Désactiver' : 'Activer' }}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-gray-500 py-4">Aucun frais de livraison défini.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %} 

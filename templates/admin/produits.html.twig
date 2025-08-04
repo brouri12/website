@@ -1,0 +1,84 @@
+{% extends 'base.html.twig' %}
+{% block title %}Gestion des produits{% endblock %}
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-6">Produits</h1>
+    <a href="{{ path('admin_dashboard') }}" class="mb-4 inline-block px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Retour au dashboard</a>
+    <a href="{{ path('admin_produits_add') }}" class="mb-4 ml-2 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Ajouter un produit</a>
+    <div class="overflow-x-auto">
+        <table id="datatable" class="min-w-full bg-white rounded shadow">
+            <thead>
+                <tr>
+                    <th class="px-4 py-2">Image</th>
+                    <th class="px-4 py-2">Nom</th>
+                    <th class="px-4 py-2">Catégorie</th>
+                    <th class="px-4 py-2">Genre</th>
+                    <th class="px-4 py-2">Prix</th>
+                    <th class="px-4 py-2">Stock</th>
+                    <th class="px-4 py-2">Tailles</th>
+                    <th class="px-4 py-2">Promotions</th>
+                    <th class="px-4 py-2">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for produit in produits %}
+                <tr class="border-t">
+                    <td class="px-4 py-2">
+                        {% if produit.imageProduit %}
+                            {% set imgPath = produit.imageProduit starts with 'apploads/' ? produit.imageProduit : 'apploads/' ~ produit.imageProduit %}
+                            <img src="{{ asset(imgPath) }}" alt="{{ produit.nomProduit }}" style="max-width: 100px; max-height: 100px;">
+                        {% else %}
+                            <span>Aucune image</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-2">{{ produit.nomProduit }}</td>
+                    <td class="px-4 py-2">{{ produit.categorie ? produit.categorie.nomCategorie : '' }}</td>
+                    <td class="px-4 py-2">{{ produit.genre|capitalize }}</td>
+                    <td class="px-4 py-2">{{ produit.prixUnitaire }} TND</td>
+                    <td class="px-4 py-2">{{ produit.stockTotal is not null ? produit.stockTotal : '-' }}</td>
+                    <td class="px-4 py-2">
+                        {% if produit.produitSizes|length > 0 %}
+                            <ul class="list-disc pl-4">
+                                {% for s in produit.produitSizes %}
+                                    <li>{{ s.size }} ({{ s.quantite }})</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}-{% endif %}
+                        {% set cat = produit.categorie ? produit.categorie.nomCategorie|lower|replace({'é':'e','è':'e','ê':'e','ë':'e'}) : '' %}
+                        {% if cat matches '/^vetement(s)?$/' %}
+                            <a href="{{ path('admin_produits_add_size_multi', {'id': produit.id}) }}" class="ml-2 px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs">Ajouter taille</a>
+                        {% elseif cat matches '/^chaussure(s)?$/' %}
+                            <a href="{{ path('admin_produits_add_size_shoes', {'id': produit.id}) }}" class="ml-2 px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs">Ajouter pointure</a>
+                        {% else %}
+                            <span class="ml-2 px-2 py-1 bg-gray-300 text-gray-700 rounded text-xs cursor-not-allowed">Stock manuel</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-2">{{ produit.promotions|length > 0 ? produit.promotions|map(p => p.codePromotion)|join(', ') : '-' }}</td>
+                    <td class="px-4 py-2">
+                        <a href="{{ path('admin_produits_edit', {'id': produit.id}) }}" class="text-blue-600 hover:underline">Modifier</a> |
+                        <a href="{{ path('admin_produits_delete', {'id': produit.id}) }}" class="text-red-600 hover:underline" onclick="return confirm('Supprimer ce produit ?');">Supprimer</a>
+                        {% set cat = produit.categorie ? produit.categorie.nomCategorie|lower|replace({'é':'e','è':'e','ê':'e','ë':'e'}) : '' %}
+                        {% if cat matches '/^accessoire(s)?$/' %}
+                            | <a href="{{ path('admin_produits_set_stock', {'id': produit.id}) }}" class="ml-2 px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-xs">Modifier stock</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center py-4">Aucun produit</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#datatable').DataTable();
+        });
+    </script>
+{% endblock %} 

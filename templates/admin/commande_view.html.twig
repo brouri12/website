@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+{% block title %}Détail Commande #{{ commande.id }}{% endblock %}
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-6">Commande #{{ commande.id }}</h1>
+    <a href="{{ path('admin_commandes') }}" class="mb-4 inline-block px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Retour à la liste</a>
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Informations générales</h2>
+        <p><span class="font-semibold">Client :</span> {{ commande.client ? commande.client.nom ~ ' ' ~ commande.client.prenom : '-' }}</p>
+        <p><span class="font-semibold">Date :</span> {{ commande.dateCommande ? commande.dateCommande|date('d/m/Y H:i') : '-' }}</p>
+        <p><span class="font-semibold">Statut :</span> {{ commande.statutCommande }}</p>
+        <p><span class="font-semibold">Montant total :</span> {{ commande.montantTotal }} TND</p>
+        <p><span class="font-semibold">Adresse de livraison :</span> {{ commande.adresseLivraison }}</p>
+        <p><span class="font-semibold">Paiement :</span> {{ commande.paiement ? commande.paiement.statutPaiement : '-' }}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Produits commandés</h2>
+        <table class="min-w-full bg-white rounded shadow">
+            <thead>
+                <tr>
+                    <th class="px-4 py-2">Produit</th>
+                    <th class="px-4 py-2">Image</th>
+                    <th class="px-4 py-2">Taille</th>
+                    <th class="px-4 py-2">Quantité</th>
+                    <th class="px-4 py-2">Prix unitaire</th>
+                    <th class="px-4 py-2">Sous-total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ligne in commande.lignesCommande %}
+                <tr class="border-t">
+                    <td class="px-4 py-2">{{ ligne.produit.nomProduit }}</td>
+                    <td class="px-4 py-2">
+                        {% if ligne.produit.imageProduit %}
+                            {% set imgPath = ligne.produit.imageProduit starts with 'apploads/' ? ligne.produit.imageProduit : 'apploads/' ~ ligne.produit.imageProduit %}
+                            <img src="{{ asset(imgPath) }}" alt="{{ ligne.produit.nomProduit }}" style="max-width: 80px; max-height: 80px;">
+                        {% else %}
+                            <span>Aucune image</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-2">{{ ligne.taille ?: '-' }}</td>
+                    <td class="px-4 py-2">{{ ligne.quantite }}</td>
+                    <td class="px-4 py-2">{{ ligne.prixUnitaire }} TND</td>
+                    <td class="px-4 py-2">{{ ligne.sousTotal }} TND</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center py-4">Aucun produit</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %} 

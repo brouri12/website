@@ -1,0 +1,352 @@
+{% extends 'base.html.twig' %}
+{% block title %}Boutique - MooDeek{% endblock %}
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Boutique</h1>
+    <div class="flex flex-row gap-8">
+        <!-- Sidebar Filtres -->
+        <aside class="w-64 bg-white rounded-lg shadow-md p-6 h-fit sticky top-8">
+            <form method="GET" action="{{ path('shop') }}" id="filtersForm">
+                <!-- Catégories -->
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold mb-2">Catégories</h2>
+                    {% for category in categories %}
+                        <div class="flex items-center mb-1">
+                            <input type="checkbox" name="category[]" value="{{ category.nomCategorie }}" id="cat-{{ loop.index }}" {% if currentFilters.category is defined and category.nomCategorie in currentFilters.category %}checked{% endif %} onchange="this.form.submit()">
+                            <label for="cat-{{ loop.index }}" class="ml-2 text-sm">{{ category.nomCategorie }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+                <!-- Prix -->
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold mb-2">Prix</h2>
+                    {% set priceOptions = [
+                        {'label': '0 - 50 TND', 'value': '0-50'},
+                        {'label': '50 - 100 TND', 'value': '50-100'},
+                        {'label': '100 - 200 TND', 'value': '100-200'},
+                        {'label': '200 - 500 TND', 'value': '200-500'},
+                        {'label': '500+ TND', 'value': '500+'}
+                    ] %}
+                    {% for price in priceOptions %}
+                        <div class="flex items-center mb-1">
+                            <input type="checkbox" name="price[]" value="{{ price.value }}" id="price-{{ loop.index }}" {% if currentFilters.price is defined and price.value in currentFilters.price %}checked{% endif %} onchange="this.form.submit()">
+                            <label for="price-{{ loop.index }}" class="ml-2 text-sm">{{ price.label }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+                <!-- Marques -->
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold mb-2">Marques</h2>
+                    {% for brand in brands %}
+                        <div class="flex items-center mb-1">
+                            <input type="checkbox" name="brand[]" value="{{ brand|lower }}" id="brand-{{ loop.index }}" {% if currentFilters.brand is defined and brand|lower in currentFilters.brand %}checked{% endif %} onchange="this.form.submit()">
+                            <label for="brand-{{ loop.index }}" class="ml-2 text-sm">{{ brand }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+                <!-- Tailles -->
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold mb-2">Tailles</h2>
+                    {% for size in sizes %}
+                        <div class="flex items-center mb-1">
+                            <input type="checkbox" name="size[]" value="{{ size }}" id="size-{{ loop.index }}" {% if currentFilters.size is defined and size in currentFilters.size %}checked{% endif %} onchange="this.form.submit()">
+                            <label for="size-{{ loop.index }}" class="ml-2 text-sm">{{ size }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+                <!-- Genres -->
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold mb-2">Genres</h2>
+                    {% set genreOptions = ['homme', 'femme', 'enfant', 'unisexe'] %}
+                    {% for genre in genreOptions %}
+                        <div class="flex items-center mb-1">
+                            <input type="checkbox" name="genre[]" value="{{ genre }}" id="genre-{{ loop.index }}" {% if currentFilters.genre is defined and genre in currentFilters.genre %}checked{% endif %} onchange="this.form.submit()">
+                            <label for="genre-{{ loop.index }}" class="ml-2 text-sm">{{ genre|capitalize }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+                <!-- Tri -->
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold mb-2">Trier par</h2>
+                    <select name="sort" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" onchange="this.form.submit()">
+                        <option value="newest" {% if currentFilters.sort == 'newest' %}selected{% endif %}>Plus récents</option>
+                        <option value="price-low" {% if currentFilters.sort == 'price-low' %}selected{% endif %}>Prix croissant</option>
+                        <option value="price-high" {% if currentFilters.sort == 'price-high' %}selected{% endif %}>Prix décroissant</option>
+                        <option value="popularity" {% if currentFilters.sort == 'popularity' %}selected{% endif %}>Popularité</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center mt-4">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                    </svg>
+                    Filtrer
+                </button>
+                <a href="{{ path('shop') }}" class="w-full block text-center mt-2 px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors duration-200">
+                    Réinitialiser
+                </a>
+            </form>
+        </aside>
+        <!-- Liste des produits -->
+        <div class="flex-1">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+                <div class="text-gray-600 mb-4 sm:mb-0">
+                    <span id="productCount">{{ products|length }}</span> produits trouvés
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-600">Vue :</span>
+                    <button class="p-2 text-blue-600 hover:text-blue-800 transition-colors duration-200" id="gridView">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                        </svg>
+                    </button>
+                    <button class="p-2 text-gray-400 hover:text-blue-600 transition-colors duration-200" id="listView">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Liste des produits -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="productsGrid">
+                {% if products|length > 0 %}
+                    {% for product in products %}
+                        <div class="product-card bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+                            <a href="{{ path('fiche_produit', {'id': product.id}) }}">
+                                <div class="w-full h-48 bg-gray-200 mb-4 rounded-lg flex items-center justify-center">
+                                    {% if product.imageProduit %}
+                                        {% set imgPath = product.imageProduit starts with 'apploads/' ? product.imageProduit : 'apploads/' ~ product.imageProduit %}
+                                        <img src="{{ asset(imgPath) }}" alt="{{ product.nomProduit }}" class="w-full h-full object-cover rounded-lg">
+                                    {% else %}
+                                        <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                    {% endif %}
+                                </div>
+                            </a>
+                            <a href="{{ path('product', {'id': product.id}) }}">
+                                <h4 class="text-lg sm:text-xl font-semibold mb-2 text-gray-800">{{ product.nomProduit }}</h4>
+                            </a>
+                            <p class="text-gray-600 text-sm sm:text-base mb-2">{{ product.description|slice(0, 100) }}{% if product.description|length > 100 %}...{% endif %}</p>
+                            <div class="flex items-center justify-between mb-3">
+                                <p class="text-blue-600 font-bold">{{ product.prixUnitaire }} TND</p>
+                                {% if product.categorie %}
+                                    <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{{ product.categorie.nomCategorie }}</span>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Tailles disponibles -->
+                            {% if product.produitSizes|length > 0 %}
+                                <div class="mb-3">
+                                    <p class="text-xs text-gray-600 mb-1">Tailles disponibles:</p>
+                                    <div class="flex flex-wrap gap-1">
+                                        {% for produitSize in product.produitSizes %}
+                                            {% if produitSize.quantite > 0 %}
+                                                <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{{ produitSize.size }}</span>
+                                            {% else %}
+                                                <span class="inline-block bg-gray-100 text-gray-400 text-xs px-2 py-1 rounded-full line-through">{{ produitSize.size }}</span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                            {% set totalStock = 0 %}
+                            {% if product.produitSizes|length > 0 %}
+                                {% for produitSize in product.produitSizes %}
+                                    {% set totalStock = totalStock + produitSize.quantite %}
+                                {% endfor %}
+                            {% else %}
+                                {% set totalStock = product.stockTotal %}
+                            {% endif %}
+                            
+                            {% if totalStock > 0 %}
+                                <!-- Sélection de taille (cachée par défaut) -->
+                                {% if product.produitSizes|length > 0 %}
+                                    <div class="mb-3 size-selection hidden" data-product-id="{{ product.id }}">
+                                        <label class="block text-xs text-gray-600 mb-1">Choisir une taille:</label>
+                                        <select class="size-select w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Sélectionner une taille</option>
+                                            {% for produitSize in product.produitSizes %}
+                                                {% if produitSize.quantite > 0 %}
+                                                    <option value="{{ produitSize.size }}" data-stock="{{ produitSize.quantite }}">{{ produitSize.size }} (Stock: {{ produitSize.quantite }})</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                {% endif %}
+                                
+                                <button 
+                                    class="add-to-cart-btn w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center justify-center transition-colors duration-200"
+                                    data-product-id="{{ product.id }}"
+                                    data-product-name="{{ product.nomProduit }}"
+                                    data-product-price="{{ product.prixUnitaire }}">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                    Ajouter au panier
+                                </button>
+                            {% else %}
+                                <button 
+                                    class="w-full bg-gray-400 text-gray-600 px-4 py-2 rounded cursor-not-allowed flex items-center justify-center"
+                                    disabled>
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                    Rupture de stock
+                                </button>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-span-full text-center py-12">
+                        <svg class="w-24 h-24 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                        <h3 class="text-xl font-semibold text-gray-600 mb-2">Aucun produit trouvé</h3>
+                        <p class="text-gray-500">Essayez de modifier vos filtres pour trouver ce que vous cherchez.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// @ts-nocheck
+// Changement de vue (grille/liste)
+document.getElementById('gridView').addEventListener('click', function() {
+    document.getElementById('productsGrid').className = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6';
+    document.getElementById('gridView').classList.add('text-blue-600');
+    document.getElementById('listView').classList.remove('text-blue-600');
+});
+
+document.getElementById('listView').addEventListener('click', function() {
+    document.getElementById('productsGrid').className = 'grid grid-cols-1 gap-6';
+    document.getElementById('listView').classList.add('text-blue-600');
+    document.getElementById('gridView').classList.remove('text-blue-600');
+});
+
+// Fonction pour ajouter au panier
+function addToCart(productId, productName, productPrice) {
+    const productCard = document.querySelector(`[data-product-id="${productId}"]`).closest('.product-card');
+    const sizeSelect = productCard.querySelector('.size-select');
+    let selectedSize = null;
+    
+    // Si le produit a des tailles et qu'elles sont visibles, vérifier qu'une taille est sélectionnée
+    if (sizeSelect && !sizeSelect.closest('.size-selection').classList.contains('hidden')) {
+        selectedSize = sizeSelect.value;
+        if (!selectedSize) {
+            showNotification('Veuillez sélectionner une taille', 'error');
+            return;
+        }
+    }
+    
+    // @ts-nocheck
+    fetch('{{ path('app_panier_ajouter') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            produit_id: productId,
+            quantite: 1,
+            taille: selectedSize
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(`${productName} ajouté au panier !`);
+            updateCartCount(data.panier_count);
+            // Réinitialiser la sélection de taille et la cacher
+            if (sizeSelect) {
+                sizeSelect.value = '';
+                sizeSelect.closest('.size-selection').classList.add('hidden');
+            }
+        } else {
+            // Si le produit est déjà dans le panier, afficher la sélection de taille
+            if (data.message && data.message.includes('déjà dans le panier')) {
+                showNotification('Ce produit est déjà dans le panier. Veuillez sélectionner une taille différente.', 'error');
+                if (sizeSelect) {
+                    sizeSelect.closest('.size-selection').classList.remove('hidden');
+                }
+            } else {
+                showNotification(data.message, 'error');
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de l\'ajout au panier', 'error');
+    });
+}
+
+// Ajouter les event listeners pour les boutons d'ajout au panier
+document.addEventListener('DOMContentLoaded', function() {
+    const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+    
+    addToCartButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = parseInt(this.getAttribute('data-product-id'));
+            const productName = this.getAttribute('data-product-name');
+            const productPrice = parseFloat(this.getAttribute('data-product-price'));
+            addToCart(productId, productName, productPrice);
+        });
+    });
+    
+    // Gérer l'activation/désactivation des boutons quand la sélection de taille est visible
+    const sizeSelects = document.querySelectorAll('.size-select');
+    sizeSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            const productCard = this.closest('.product-card');
+            const addToCartBtn = productCard.querySelector('.add-to-cart-btn');
+            
+            if (this.value) {
+                addToCartBtn.disabled = false;
+                addToCartBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                addToCartBtn.disabled = true;
+                addToCartBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        });
+    });
+    
+    updateCartCount();
+});
+
+// Fonction pour afficher une notification
+function showNotification(message) {
+    // Créer une notification temporaire
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-md shadow-lg z-50 transform transition-all duration-300 translate-x-full';
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Animer l'entrée
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+    }, 100);
+    
+    // Supprimer après 3 secondes
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 3000);
+}
+
+// Fonction pour mettre à jour le compteur du panier
+function updateCartCount(count) {
+    const cartCounter = document.getElementById('cartCounter');
+    if (cartCounter) {
+        cartCounter.textContent = count;
+        cartCounter.classList.toggle('hidden', count === 0);
+    }
+}
+
+
+</script>
+{% endblock %}

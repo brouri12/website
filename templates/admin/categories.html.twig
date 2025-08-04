@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+{% block title %}Gestion des catégories{% endblock %}
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-6">Catégories</h1>
+    <a href="{{ path('admin_dashboard') }}" class="mb-4 inline-block px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Retour au dashboard</a>
+    <a href="{{ path('admin_categories_add') }}" class="mb-4 ml-2 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Ajouter une catégorie</a>
+    <div class="overflow-x-auto">
+        <table id="datatable" class="min-w-full bg-white rounded shadow">
+            <thead>
+                <tr>
+                    <th class="px-4 py-2">Nom</th>
+                    <th class="px-4 py-2">Description</th>
+                    <th class="px-4 py-2">Catégorie parente</th>
+                    <th class="px-4 py-2">Nb Produits</th>
+                    <th class="px-4 py-2">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for categorie in categories %}
+                <tr class="border-t">
+                    <td class="px-4 py-2">{{ categorie.nomCategorie }}</td>
+                    <td class="px-4 py-2">{{ categorie.descriptionCategorie }}</td>
+                    <td class="px-4 py-2">{{ categorie.categorieParent ? categorie.categorieParent.nomCategorie : '' }}</td>
+                    <td class="px-4 py-2">{{ categorie.produits|length }}</td>
+                    <td class="px-4 py-2">
+                        <a href="{{ path('admin_categories_edit', {'id': categorie.id}) }}" class="text-blue-600 hover:underline">Modifier</a> |
+                        <a href="{{ path('admin_categories_delete', {'id': categorie.id}) }}" class="text-red-600 hover:underline" onclick="return confirm('Supprimer cette catégorie ?');">Supprimer</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center py-4">Aucune catégorie</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#datatable').DataTable();
+        });
+    </script>
+{% endblock %} 

@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+{% block title %}Définir le stock total pour {{ produit.nomProduit }}{% endblock %}
+{% block body %}
+<div class="container mx-auto py-8 px-4">
+    <div class="bg-white p-8 rounded-lg shadow max-w-lg mx-auto">
+        <h1 class="text-2xl font-bold mb-6 text-center">Définir le stock total pour {{ produit.nomProduit }}</h1>
+        <form id="stockForm" method="post" style="display:none;">
+            <input type="hidden" name="stock_total" id="stock_total_hidden">
+        </form>
+        {% if error %}
+            <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">{{ error }}</div>
+        {% endif %}
+    </div>
+    <!-- Modal -->
+    <div id="stockModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div class="bg-white p-8 rounded-lg shadow-lg max-w-sm w-full">
+            <h2 class="text-xl font-semibold mb-4 text-center">Saisir le stock total</h2>
+            <input type="number" id="stockInput" min="0" class="w-full border border-gray-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Stock total" required>
+            <div class="flex justify-end gap-2">
+                <button id="cancelBtn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 font-semibold">Annuler</button>
+                <button id="saveBtn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-semibold">Valider</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('stockModal');
+    const saveBtn = document.getElementById('saveBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const stockInput = document.getElementById('stockInput');
+    const form = document.getElementById('stockForm');
+    const stockHidden = document.getElementById('stock_total_hidden');
+
+    saveBtn.onclick = function(e) {
+        e.preventDefault();
+        if (stockInput.value === '' || isNaN(stockInput.value) || parseInt(stockInput.value) < 0) {
+            stockInput.classList.add('border-red-500');
+            return;
+        }
+        stockHidden.value = stockInput.value;
+        form.submit();
+    };
+    cancelBtn.onclick = function(e) {
+        e.preventDefault();
+        window.location.href = "{{ path('admin_produits') }}";
+    };
+    // Focus input on open
+    stockInput.focus();
+});
+</script>
+{% endblock %} 

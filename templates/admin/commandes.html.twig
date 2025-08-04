@@ -1,0 +1,90 @@
+{% extends 'base.html.twig' %}
+{% block title %}Gestion des commandes{% endblock %}
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-6">Commandes</h1>
+    <a href="{{ path('admin_dashboard') }}" class="mb-4 inline-block px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Retour au dashboard</a>
+    <div class="overflow-x-auto">
+        <table id="datatable" class="min-w-full bg-white rounded shadow">
+            <thead>
+                <tr>
+                    <th class="px-4 py-2">Client</th>
+                    <th class="px-4 py-2">Date</th>
+                    <th class="px-4 py-2">Montant</th>
+                    <th class="px-4 py-2">Statut</th>
+                    <th class="px-4 py-2">Paiement</th>
+                    <th class="px-4 py-2">Produits</th>
+                    <th class="px-4 py-2">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for commande in commandes %}
+                <tr class="border-t">
+                    <td class="px-4 py-2">{{ commande.client ? commande.client.nom ~ ' ' ~ commande.client.prenom : '' }}</td>
+                    <td class="px-4 py-2">{{ commande.dateCommande ? commande.dateCommande|date('d/m/Y H:i') : '' }}</td>
+                    <td class="px-4 py-2">{{ commande.montantTotal }} TND</td>
+                    <td class="px-4 py-2">{{ commande.statutCommande }}</td>
+                    <td class="px-4 py-2">{{ commande.paiement ? commande.paiement.statutPaiement : '-' }}</td>
+                    <td class="px-4 py-2">{{ commande.lignesCommande|length > 0 ? commande.lignesCommande|map(l => l.produit.nomProduit ~ ' x' ~ l.quantite)|join(', ') : '-' }}</td>
+                    <td class="px-4 py-2">
+                        <a href="{{ path('admin_commandes') }}/view/{{ commande.id }}" class="text-blue-600 hover:underline">Voir</a> |
+                        <a href="{{ path('admin_commandes') }}/edit/{{ commande.id }}" class="text-blue-600 hover:underline">Modifier</a> |
+                        <a href="{{ path('admin_commandes') }}/delete/{{ commande.id }}" class="text-red-600 hover:underline" onclick="return confirm('Supprimer cette commande ?');">Supprimer</a> |
+                        <button class="bg-yellow-500 text-white px-2 py-1 rounded text-xs hover:bg-yellow-600" onclick="openStatusModal({{ commande.id }}, '{{ commande.statutCommande }}')">Changer statut</button> |
+                        <a href="{{ path('admin_commandes_invoice', {'id': commande.id}) }}" class="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700" target="_blank">Télécharger facture</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center py-4">Aucune commande</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#datatable').DataTable();
+        });
+
+        function openStatusModal(commandeId, currentStatus) {
+            let modal = document.getElementById('statusModal');
+            let select = document.getElementById('statusSelect');
+            let form = document.getElementById('statusForm');
+            document.getElementById('commandeIdInput').value = commandeId;
+            // Correction : bien sélectionner la valeur même avec accents
+            for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].value === currentStatus) {
+                    select.selectedIndex = i;
+                    break;
+                }
+            }
+            modal.classList.remove('hidden');
+        }
+        function closeStatusModal() {
+            document.getElementById('statusModal').classList.add('hidden');
+        }
+    </script>
+    <div id="statusModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 w-full max-w-sm">
+            <h3 class="text-lg font-semibold mb-4">Changer le statut de la commande</h3>
+            <form id="statusForm" method="post" action="{{ path('admin_commandes_change_status') }}">
+                <input type="hidden" name="commande_id" id="commandeIdInput">
+                <select name="statut" id="statusSelect" class="w-full mb-4 px-3 py-2 border rounded">
+                    <option value="livrée">Livrée</option>
+                    <option value="confirmée">Confirmée</option>
+                    <option value="annulée">Annulée</option>
+                </select>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="closeStatusModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Annuler</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Valider</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %} 

@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+{% block title %}Modifier un client{% endblock %}
+{% block body %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <h1 class="text-2xl font-bold mb-6">Modifier un client</h1>
+    <a href="{{ path('admin_clients') }}" class="mb-4 inline-block px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Retour à la liste</a>
+    <a href="{{ path('admin_dashboard') }}" class="mb-4 ml-2 inline-block px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Dashboard</a>
+    {{ form_start(form) }}
+        <div class="mb-4">{{ form_row(form.nom) }}</div>
+        <div class="mb-4">{{ form_row(form.prenom) }}</div>
+        <div class="mb-4">{{ form_row(form.email) }}</div>
+        <div class="mb-4">{{ form_row(form.numero_telephone) }}</div>
+        <div class="mb-4">{{ form_row(form.adresse) }}</div>
+        <div class="mb-4">{{ form_row(form.statut_compte) }}</div>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Enregistrer les modifications</button>
+    {{ form_end(form) }}
+</div>
+{% endblock %} 

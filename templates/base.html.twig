@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MooDeek{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    {% block stylesheets %}{% endblock %}
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Hero Section with Background Image -->
+    <section class="bg-blue-700 text-white pb-10 sm:pb-14 md:pb-40 bg-cover bg-center relative" style="background-image: url('https://cdn.pixabay.com/photo/2024/03/04/15/41/ai-generated-8612606_1280.png');">
+        <div class="absolute inset-0 bg-blue-700 opacity-50"></div>
+        
+        <!-- Navigation Bar -->
+        <nav class="bg-[#1E3A8A] bg-opacity-10 backdrop-blur-md text-white p-4 sticky top-0 z-40  border-b border-white border-opacity-20">
+            <div class="container mx-auto flex justify-between items-center">
+                <div class="flex items-center">
+                    <a href="{{ path('home') }}" class="flex items-center">
+                        <img src="{{ asset('images/logo-md.png') }}" alt="MOODEEK LOGO" class="w-30 h-10 mr-4">
+                        <span class="text-3xl font-bold">MOODEEK</span>
+                    </a>
+                </div>
+                <button id="menuToggle" class="md:hidden focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+                <ul id="navMenu" class="hidden md:flex md:space-x-6">
+                    <li class="flex items-center">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        <a href="{{ path('home') }}" class="hover:text-blue-200 transition-colors duration-200">Accueil</a>
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                        </svg>
+                        <a href="{{ path('shop') }}" class="hover:text-blue-200 transition-colors duration-200">Boutique</a>
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <a href="{{ path('app_panier_index') }}" class="hover:text-blue-200 transition-colors duration-200 relative">
+                            Panier
+                            <span id="cartCounter" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+                        </a>
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10a9 9 0 11-18 0 9 9 0 0118 0zM15 9a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <a href="{{ path('contact') }}" class="hover:text-blue-200 transition-colors duration-200">Contact</a>
+                    </li>
+                    {% if app.user %}
+                        <li class="flex items-center">
+                            <div class="relative">
+                                <button id="userMenuButton" class="flex items-center hover:text-blue-200 transition-colors duration-200">
+                                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                    </svg>
+                                    {{ app.user.prenom }} {{ app.user.nom }}
+                                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 user-menu rounded-md shadow-lg py-1 z-50">
+                                    <a href="{{ path('app_profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Mon Profil</a>
+                                    <a href="{{ path('app_profile_edit') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Modifier Profil</a>
+                                    <a href="{{ path('app_commande_index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Mes Commandes</a>
+                                    <hr class="my-1">
+                                    <a href="{{ path('app_logout') }}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Déconnexion</a>
+                                </div>
+                            </div>
+                        </li>
+                    {% else %}
+                        <li class="flex items-center">
+                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                            <a href="{{ path('app_login') }}" class="hover:text-blue-200 transition-colors duration-200">Connexion</a>
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                            </svg>
+                            <a href="{{ path('app_register') }}" class="hover:text-blue-200 transition-colors duration-200">Inscription</a>
+                        </li>
+                    {% endif %}
+                    {% if app.user and 'ROLE_ADMIN' in app.user.roles %}
+                    <li class="flex items-center">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v4a1 1 0 001 1h3m10-5h3a1 1 0 011 1v4a1 1 0 01-1 1h-3m-10 0v6a1 1 0 001 1h3m10-7v6a1 1 0 01-1 1h-3m-10 0h6m6 0h6"></path>
+                        </svg>
+                        <a href="{{ path('admin_dashboard') }}" class="hover:text-blue-200 transition-colors duration-200">Dashboard Admin</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+            <!-- Mobile Menu -->
+            <div id="mobileMenu" class="hidden md:hidden bg-[#1E3A8A] bg-opacity-20 backdrop-blur-md border-t border-white border-opacity-20">
+                <ul class="flex flex-col space-y-4 p-4">
+                    <li class="flex items-center">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        <a href="{{ path('home') }}" class="hover:text-blue-200 transition-colors duration-200">Accueil</a>
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                        </svg>
+                        <a href="{{ path('shop') }}" class="hover:text-blue-200 transition-colors duration-200">Boutique</a>
+                    </li>
+                    <li class="flex items-center">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <a href="{{ path('app_panier_index') }}" class="hover:text-blue-200 transition-colors duration-200 relative">
+                            Panier
+                            <span id="cartCounter" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+                        </a>
+                    </li>
+                    <li class="flex items-center">
+                        <a href="{{ path('contact') }}" class="hover:text-blue-200 transition-colors duration-200">Contact</a>
+                    </li>
+                    {% if app.user %}
+                        <li class="flex items-center">
+                            <a href="{{ path('app_profile') }}" class="hover:text-blue-200 transition-colors duration-200">{{ app.user.prenom }} {{ app.user.nom }}</a>
+                        </li>
+                        <li class="flex items-center">
+                            <a href="{{ path('app_profile_edit') }}" class="hover:text-blue-200 transition-colors duration-200">Modifier Profil</a>
+                        </li>
+                        <li class="flex items-center">
+                            <a href="{{ path('app_commande_index') }}" class="hover:text-blue-200 transition-colors duration-200">Mes Commandes</a>
+                        </li>
+                        <li class="flex items-center">
+                            <a href="{{ path('app_logout') }}" class="hover:text-blue-200 text-red-400 transition-colors duration-200">Déconnexion</a>
+                        </li>
+                        {% if app.user and 'ROLE_ADMIN' in app.user.roles %}
+                        <li class="flex items-center">
+                            <a href="{{ path('admin_dashboard') }}" class="hover:text-blue-200 transition-colors duration-200">Dashboard Admin</a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="flex items-center">
+                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                            <a href="{{ path('app_login') }}" class="hover:text-blue-200 transition-colors duration-200">Connexion</a>
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                            </svg>
+                            <a href="{{ path('app_register') }}" class="hover:text-blue-200 transition-colors duration-200">Inscription</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Hero Content -->
+        <div class="hero-content container mx-auto text-center px-4 relative z-10">
+            {% block hero_content %}{% endblock %}
+        </div>
+    </section>
+
+    <main>
+        {# Messages Flash globaux #}
+        {% include 'partials/_flash_messages.html.twig' %}
+        
+        {% block body %}{% endblock %}
+    </main>
+    <script>
+        // Toggle mobile menu
+        const menuToggle = document.getElementById('menuToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+        if(menuToggle && mobileMenu) {
+            menuToggle.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+        // Toggle user menu
+        const userMenuButton = document.getElementById('userMenuButton');
+        const userMenu = document.getElementById('userMenu');
+        if (userMenuButton && userMenu) {
+            userMenuButton.addEventListener('click', () => {
+                userMenu.classList.toggle('hidden');
+            });
+            document.addEventListener('click', (event) => {
+                if (!userMenuButton.contains(event.target) && !userMenu.contains(event.target)) {
+                    userMenu.classList.add('hidden');
+                }
+            });
+        }
+    </script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    {% block javascripts %}{% endblock %}
+</body>
+</html> 

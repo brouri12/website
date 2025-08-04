@@ -1,0 +1,495 @@
+{# @ts-nocheck #}
+{% extends 'base.html.twig' %}
+{% block title %}Mon Panier - MooDeek{% endblock %}
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">Mon Panier</h1>
+    
+    {% if panier_items|length > 0 %}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Liste des produits -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-md">
+                    <div class="p-6 border-b border-gray-200">
+                        <h2 class="text-xl font-semibold">Articles ({{ panier_items|length }})</h2>
+                    </div>
+                    
+                    <div class="divide-y divide-gray-200">
+                        {% for item in panier_items %}
+                            <div class="p-6 flex items-center space-x-4" data-panier-id="{{ item.id }}">
+                                <!-- Image du produit -->
+                                <div class="flex-shrink-0">
+                                    {% if item.produit.imageProduit %}
+                                        {% set imgPath = item.produit.imageProduit starts with 'apploads/' ? item.produit.imageProduit : 'apploads/' ~ item.produit.imageProduit %}
+                                        <img src="{{ asset(imgPath) }}" alt="{{ item.produit.nomProduit }}" class="w-16 h-16 rounded-lg">
+                                    {% else %}
+                                        <div class="w-16 h-16 bg-gray-200 rounded"></div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Informations du produit -->
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-lg font-medium text-gray-900">{{ item.produit.nomProduit }}</h3>
+                                    <p class="text-sm text-gray-500 size-display" data-panier-id="{{ item.id }}">
+                                        {% if item.taille %}
+                                            Taille: {{ item.taille }}
+                                        {% else %}
+                                            Taille: Non sélectionnée
+                                        {% endif %}
+                                    </p>
+                                    <p class="text-lg font-semibold text-blue-600">{{ item.produit.prixUnitaire }} TND</p>
+                                </div>
+                                
+                                <!-- Sélection de taille -->
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm text-gray-600">Taille:</label>
+                                    <select class="size-select border border-gray-300 rounded-md px-2 py-1 text-sm" data-panier-id="{{ item.id }}" data-previous-size="{{ item.taille }}" onchange="changeSize({{ item.id }}, this.value)">
+                                        <option value="">Choisir une taille</option>
+                                        {% for produitSize in item.produit.produitSizes %}
+                                            {% if produitSize.quantite > 0 %}
+                                                <option value="{{ produitSize.size }}" {% if item.taille == produitSize.size %}selected{% endif %} data-stock="{{ produitSize.quantite }}">{{ produitSize.size }} </option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <!-- Contrôles de quantité -->
+                                <div class="flex items-center space-x-2">
+                                    <button class="quantity-btn-minus px-3 py-1 border border-gray-300 rounded-md text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed" 
+                                            onclick="changeQuantity({{ item.id }}, -1)" 
+                                            {% if not item.taille %}disabled{% endif %}>-</button>
+                                    <span class="quantity-display px-3 py-1 border border-gray-300 rounded-md min-w-[60px] text-center">{{ item.quantite }}</span>
+                                    <button class="quantity-btn-plus px-3 py-1 border border-gray-300 rounded-md text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed" 
+                                            onclick="changeQuantity({{ item.id }}, 1)" 
+                                            {% if not item.taille %}disabled{% endif %}>+</button>
+                                </div>
+                                
+                                <!-- Message d'information -->
+                                <div class="text-sm text-gray-500 stock-info" data-panier-id="{{ item.id }}">
+                                    {% if not item.taille %}
+                                        <span class="text-orange-600">⚠️ Choisissez une taille pour modifier la quantité</span>
+                                    {% else %}
+                                        {% set selectedSize = null %}
+                                        {% for produitSize in item.produit.produitSizes %}
+                                            {% if produitSize.size == item.taille %}
+                                                {% set selectedSize = produitSize %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if selectedSize %}
+                                            <span class="text-green-600">Stock disponible: {{ selectedSize.quantite }}</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Prix total pour cet article -->
+                                <div class="text-right">
+                                    <p class="text-lg font-semibold text-gray-900">{{ (item.quantite * item.produit.prixUnitaire)|number_format(2) }} TND</p>
+                                </div>
+                                
+                                <!-- Bouton supprimer -->
+                                <button class="remove-item-btn text-red-600 hover:text-red-800" onclick="removeItem({{ item.id }})">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Résumé de la commande -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-md p-6 sticky top-4">
+                    <h2 class="text-xl font-semibold mb-4">Résumé de la commande</h2>
+                    
+                    <div class="space-y-3 mb-6">
+                        <div class="flex justify-between mb-2">
+                            <span>Sous-total ({{ panier_items|length }} articles)</span>
+                            <span class="font-medium">{{ total|number_format(2) }} TND</span>
+                        </div>
+                        
+                        <!-- Frais de livraison dynamiques -->
+                        {% if frais_livraison|length > 0 %}
+                            <div class="flex justify-between mb-2">
+                                <span>Livraison</span>
+                                <span>{{ frais_livraison_montant|number_format(2) }} TND</span>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Taxes dynamiques -->
+                        {# @ts-ignore #}
+                        {# Taxes supprimées du résumé de la commande #}
+                        
+                        <div class="flex justify-between text-lg font-bold mt-4">
+                            <span>Total</span>
+                            <span>{{ total_final|number_format(2) }} TND</span>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <a href="{{ path('app_commande_creer') }}" class="block w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors duration-200 font-medium text-center">
+                            Passer la commande
+                        </a>
+                        <button onclick="viderPanier()" class="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 transition-colors duration-200">
+                            Vider le panier
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Panier vide -->
+        <div class="text-center py-12">
+            <svg class="w-24 h-24 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-600 mb-2">Votre panier est vide</h3>
+            <p class="text-gray-500 mb-6">Ajoutez des produits pour commencer vos achats.</p>
+            <a href="{{ path('shop') }}" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors duration-200">
+                Continuer les achats
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+// @ts-nocheck
+// Fonction pour changer la quantité
+function changeQuantity(panierId, delta) {
+    const itemContainer = document.querySelector(`[data-panier-id="${panierId}"]`);
+    const quantityDisplay = itemContainer.querySelector('.quantity-display');
+    const sizeSelect = itemContainer.querySelector('.size-select');
+    const currentQuantity = parseInt(quantityDisplay.textContent);
+    const newQuantity = currentQuantity + delta;
+    
+    // Vérifier si une taille est sélectionnée
+    if (!sizeSelect.value) {
+        alert('Veuillez d\'abord choisir une taille');
+        return;
+    }
+    
+    // Récupérer le stock disponible pour la taille sélectionnée
+    const selectedOption = sizeSelect.querySelector(`option[value="${sizeSelect.value}"]`);
+    const availableStock = parseInt(selectedOption.getAttribute('data-stock'));
+    
+    if (newQuantity < 1) {
+        removeItem(panierId);
+        return;
+    }
+    
+    // Vérifier si la nouvelle quantité ne dépasse pas le stock
+    if (newQuantity > availableStock) {
+        alert(`Stock insuffisant. Quantité maximale disponible: ${availableStock}`);
+        return;
+    }
+    
+    // @ts-ignore
+    fetch('{{ path('app_panier_modifier_quantite') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            panier_id: panierId,
+            quantite: newQuantity
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            quantityDisplay.textContent = newQuantity;
+            updateCartCount(data.panier_count);
+            updateQuantityControls(panierId, newQuantity, availableStock);
+            location.reload(); // Recharger pour mettre à jour les prix
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('Erreur lors de la modification de la quantité');
+    });
+}
+
+// Fonction pour supprimer un article
+function removeItem(panierId) {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
+        return;
+    }
+    
+    // @ts-ignore
+    fetch(`{{ path('app_panier_supprimer', {'id': 'PLACEHOLDER'}) }}`.replace('PLACEHOLDER', panierId), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.querySelector(`[data-panier-id="${panierId}"]`).remove();
+            updateCartCount(data.panier_count);
+            location.reload(); // Toujours recharger la page pour mettre à jour le résumé
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('Erreur lors de la suppression');
+    });
+}
+
+// Fonction pour vider le panier
+function viderPanier() {
+    if (!confirm('Êtes-vous sûr de vouloir vider votre panier ?')) {
+        return;
+    }
+    
+    // @ts-ignore
+    fetch('{{ path('app_panier_vider') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateCartCount(data.panier_count);
+            location.reload();
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('Erreur lors du vidage du panier');
+    });
+}
+
+// Fonction pour changer la taille
+function changeSize(panierId, newSize) {
+    const itemContainer = document.querySelector(`[data-panier-id="${panierId}"]`);
+    const quantityControls = itemContainer.querySelectorAll('.quantity-btn-minus, .quantity-btn-plus');
+    const quantityDisplay = itemContainer.querySelector('.quantity-display');
+    const sizeDisplay = itemContainer.querySelector('.size-display');
+    const stockInfo = itemContainer.querySelector('.stock-info');
+    
+    // Mettre à jour immédiatement l'affichage de la taille
+    if (newSize) {
+        sizeDisplay.textContent = `Taille: ${newSize}`;
+        sizeDisplay.style.color = '#6b7280'; // text-gray-500
+    } else {
+        sizeDisplay.textContent = 'Taille: Non sélectionnée';
+        sizeDisplay.style.color = '#9ca3af'; // text-gray-400
+    }
+    
+    if (!newSize) {
+        // Désactiver les contrôles de quantité si aucune taille n'est sélectionnée
+        quantityControls.forEach(btn => {
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+        });
+        // Mettre à jour l'affichage du stock
+        stockInfo.innerHTML = '<span class="text-orange-600">⚠️ Choisissez une taille pour modifier la quantité</span>';
+        return;
+    }
+    
+    // Récupérer le stock disponible pour la nouvelle taille
+    const sizeSelect = itemContainer.querySelector('.size-select');
+    const selectedOption = sizeSelect.querySelector(`option[value="${newSize}"]`);
+    const availableStock = parseInt(selectedOption.getAttribute('data-stock'));
+    
+    // Mettre à jour l'affichage du stock disponible
+    stockInfo.innerHTML = `<span class="text-green-600">Stock disponible: ${availableStock}</span>`;
+    
+    // Activer les contrôles de quantité
+    quantityControls.forEach(btn => {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+    });
+    
+    // Réinitialiser la quantité à 1 si elle dépasse le stock disponible
+    const currentQuantity = parseInt(quantityDisplay.textContent);
+    if (currentQuantity > availableStock) {
+        quantityDisplay.textContent = 1;
+        // Mettre à jour la quantité dans la base de données
+        updateQuantityInDatabase(panierId, 1);
+    }
+    
+    // @ts-ignore
+    fetch('{{ path('app_panier_modifier_taille') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            panier_id: panierId,
+            taille: newSize
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Taille modifiée avec succès !');
+            updateQuantityControls(panierId, parseInt(quantityDisplay.textContent), availableStock);
+            // Sauvegarder la nouvelle taille comme taille précédente
+            sizeSelect.setAttribute('data-previous-size', newSize);
+        } else {
+            // En cas d'erreur, remettre l'ancienne taille
+            alert(data.message);
+            // Remettre l'ancienne valeur dans le select
+            const previousSize = sizeSelect.getAttribute('data-previous-size') || '';
+            sizeSelect.value = previousSize;
+            if (previousSize) {
+                sizeDisplay.textContent = `Taille: ${previousSize}`;
+                // Remettre l'ancien stock
+                const previousOption = sizeSelect.querySelector(`option[value="${previousSize}"]`);
+                if (previousOption) {
+                    const previousStock = parseInt(previousOption.getAttribute('data-stock'));
+                    stockInfo.innerHTML = `<span class="text-green-600">Stock disponible: ${previousStock}</span>`;
+                }
+            } else {
+                sizeDisplay.textContent = 'Taille: Non sélectionnée';
+                stockInfo.innerHTML = '<span class="text-orange-600">⚠️ Choisissez une taille pour modifier la quantité</span>';
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('Erreur lors de la modification de la taille');
+        // Remettre l'ancienne valeur en cas d'erreur
+        const previousSize = sizeSelect.getAttribute('data-previous-size') || '';
+        sizeSelect.value = previousSize;
+        if (previousSize) {
+            sizeDisplay.textContent = `Taille: ${previousSize}`;
+            // Remettre l'ancien stock
+            const previousOption = sizeSelect.querySelector(`option[value="${previousSize}"]`);
+            if (previousOption) {
+                const previousStock = parseInt(previousOption.getAttribute('data-stock'));
+                stockInfo.innerHTML = `<span class="text-green-600">Stock disponible: ${previousStock}</span>`;
+            }
+        } else {
+            sizeDisplay.textContent = 'Taille: Non sélectionnée';
+            stockInfo.innerHTML = '<span class="text-orange-600">⚠️ Choisissez une taille pour modifier la quantité</span>';
+        }
+    });
+}
+
+// Fonction pour mettre à jour les contrôles de quantité
+function updateQuantityControls(panierId, currentQuantity, maxStock) {
+    const itemContainer = document.querySelector(`[data-panier-id="${panierId}"]`);
+    const minusBtn = itemContainer.querySelector('.quantity-btn-minus');
+    const plusBtn = itemContainer.querySelector('.quantity-btn-plus');
+    
+    // Désactiver le bouton moins si la quantité est 1
+    minusBtn.disabled = currentQuantity <= 1;
+    minusBtn.classList.toggle('opacity-50', currentQuantity <= 1);
+    minusBtn.classList.toggle('cursor-not-allowed', currentQuantity <= 1);
+    
+    // Désactiver le bouton plus si la quantité atteint le stock maximum
+    plusBtn.disabled = currentQuantity >= maxStock;
+    plusBtn.classList.toggle('opacity-50', currentQuantity >= maxStock);
+    plusBtn.classList.toggle('cursor-not-allowed', currentQuantity >= maxStock);
+}
+
+// Fonction pour mettre à jour la quantité dans la base de données
+function updateQuantityInDatabase(panierId, newQuantity) {
+    // @ts-ignore
+    fetch('{{ path('app_panier_modifier_quantite') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            panier_id: panierId,
+            quantite: newQuantity
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            console.error('Erreur lors de la mise à jour de la quantité:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+    });
+}
+
+// Fonction pour afficher une notification
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-md shadow-lg z-50 transform transition-all duration-300 translate-x-full ${
+        type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Animer l'entrée
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+    }, 100);
+    
+    // Supprimer après 3 secondes
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 3000);
+}
+
+// Fonction pour mettre à jour le compteur du panier
+function updateCartCount(count) {
+    const cartCounter = document.getElementById('cartCounter');
+    if (cartCounter) {
+        cartCounter.textContent = count;
+        cartCounter.classList.toggle('hidden', count === 0);
+    }
+}
+
+// Initialisation des contrôles au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+    const panierItems = document.querySelectorAll('[data-panier-id]');
+    
+    panierItems.forEach(item => {
+        const panierId = item.getAttribute('data-panier-id');
+        const sizeSelect = item.querySelector('.size-select');
+        const quantityDisplay = item.querySelector('.quantity-display');
+        const stockInfo = item.querySelector('.stock-info');
+        
+        if (sizeSelect && quantityDisplay) {
+            const currentQuantity = parseInt(quantityDisplay.textContent);
+            const selectedSize = sizeSelect.value;
+            
+            if (selectedSize) {
+                const selectedOption = sizeSelect.querySelector(`option[value="${selectedSize}"]`);
+                if (selectedOption) {
+                    const availableStock = parseInt(selectedOption.getAttribute('data-stock'));
+                    updateQuantityControls(panierId, currentQuantity, availableStock);
+                    // Mettre à jour l'affichage du stock
+                    if (stockInfo) {
+                        stockInfo.innerHTML = `<span class="text-green-600">Stock disponible: ${availableStock}</span>`;
+                    }
+                }
+            } else {
+                // Désactiver les contrôles si aucune taille n'est sélectionnée
+                const quantityControls = item.querySelectorAll('.quantity-btn-minus, .quantity-btn-plus');
+                quantityControls.forEach(btn => {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                });
+                // Mettre à jour l'affichage du stock
+                if (stockInfo) {
+                    stockInfo.innerHTML = '<span class="text-orange-600">⚠️ Choisissez une taille pour modifier la quantité</span>';
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

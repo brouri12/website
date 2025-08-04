@@ -1,0 +1,243 @@
+{% extends 'base.html.twig' %}
+{% block title %}Accueil - MooDeek{% endblock %}
+
+{% block hero_content %}
+<div class="animate-fade-in-up">
+    <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 text-white">Welcome to My Store</h2>
+    <p class="text-base sm:text-lg md:text-xl mb-6 max-w-2xl mx-auto text-white">Shop the latest trends and exclusive products at unbeatable prices.</p>
+    <button id="ctaButton" class="btn-secondary px-6 py-3 rounded-full font-semibold">
+        Shop Now
+    </button>
+</div>
+{% endblock %}
+
+{% block body %}
+<!-- Produits populaires -->
+{% if popularProducts|length > 0 %}
+<section class="py-12 sm:py-16 bg-white">
+    <div class="container mx-auto px-4">
+        <h3 class="text-2xl sm:text-3xl font-bold text-center mb-8 text-gray-800">Exemples de produits populaires</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8">
+            {% for product in popularProducts %}
+                <div class="product-card bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+                    <a href="{{ path('fiche_produit', {'id': product.id}) }}">
+                        <div class="w-full h-48 bg-gray-200 mb-4 rounded-lg flex items-center justify-center">
+                            {% if product.imageProduit %}
+                                {% set imgPath = product.imageProduit starts with 'apploads/' ? product.imageProduit : 'apploads/' ~ product.imageProduit %}
+                                <img src="{{ asset(imgPath) }}" alt="{{ product.nomProduit }}" class="w-full h-full object-cover rounded-lg">
+                            {% else %}
+                                <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            {% endif %}
+                        </div>
+                        <h4 class="text-lg sm:text-xl font-semibold mb-2 text-gray-800">{{ product.nomProduit }}</h4>
+                    </a>
+                    <p class="text-gray-600 text-sm sm:text-base mb-2">{{ product.description|slice(0, 100) }}{% if product.description|length > 100 %}...{% endif %}</p>
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-blue-600 font-bold">{{ product.prixUnitaire }} TND</p>
+                        {% if product.categorie %}
+                            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{{ product.categorie.nomCategorie }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Tailles disponibles -->
+                    {% if product.produitSizes|length > 0 %}
+                        <div class="mb-3">
+                            <p class="text-xs text-gray-600 mb-1">Tailles disponibles:</p>
+                            <div class="flex flex-wrap gap-1">
+                                {% for produitSize in product.produitSizes %}
+                                    {% if produitSize.quantite > 0 %}
+                                        <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{{ produitSize.size }}</span>
+                                    {% else %}
+                                        <span class="inline-block bg-gray-100 text-gray-400 text-xs px-2 py-1 rounded-full line-through">{{ produitSize.size }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <button 
+                        class="add-to-cart-btn w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center justify-center transition-colors duration-200"
+                        data-product-id="{{ product.id }}"
+                        data-product-name="{{ product.nomProduit }}"
+                        data-product-price="{{ product.prixUnitaire }}">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        Ajouter au panier
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-8">
+            <a href="{{ path('shop') }}" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200">
+                <span>Voir tous les produits</span>
+                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Produits en promotion -->
+{% if promotedProducts|length > 0 %}
+<section class="py-12 sm:py-16 bg-gray-50">
+    <div class="container mx-auto px-4">
+        <h3 class="text-2xl sm:text-3xl font-bold text-center mb-8 text-gray-800">Exemples de promotions</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8">
+            {% for product in promotedProducts %}
+                <div class="product-card bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 border-2 border-red-200">
+                    <div class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                        PROMO
+                    </div>
+                    <a href="{{ path('product', {'id': product.id}) }}">
+                        <div class="w-full h-48 bg-gray-200 mb-4 rounded-lg flex items-center justify-center">
+                            {% if product.imageProduit %}
+                                {% set imgPath = product.imageProduit starts with 'apploads/' ? product.imageProduit : 'apploads/' ~ product.imageProduit %}
+                                <img src="{{ asset(imgPath) }}" alt="{{ product.nomProduit }}" class="w-full h-full object-cover rounded-lg">
+                            {% else %}
+                                <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            {% endif %}
+                        </div>
+                        <h4 class="text-lg sm:text-xl font-semibold mb-2 text-gray-800">{{ product.nomProduit }}</h4>
+                    </a>
+                    <p class="text-gray-600 text-sm sm:text-base mb-2">{{ product.description|slice(0, 100) }}{% if product.description|length > 100 %}...{% endif %}</p>
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-red-600 font-bold">{{ product.prixUnitaire }} TND</p>
+                        {% if product.categorie %}
+                            <span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">{{ product.categorie.nomCategorie }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <button 
+                        class="add-to-cart-btn w-full bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 flex items-center justify-center transition-colors duration-200"
+                        data-product-id="{{ product.id }}"
+                        data-product-name="{{ product.nomProduit }}"
+                        data-product-price="{{ product.prixUnitaire }}">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        Ajouter au panier
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Catégories -->
+{% if categories|length > 0 %}
+<section class="py-12 sm:py-16 bg-white">
+    <div class="container mx-auto px-4">
+        <h3 class="text-2xl sm:text-3xl font-bold text-center mb-8 text-gray-800">Exemples de catégories</h3>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {% for category in categories %}
+                <div class="category-card bg-gray-100 p-6 rounded-lg text-center hover:bg-gray-200 transition-colors duration-200">
+                    <div class="w-16 h-16 bg-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-lg font-semibold text-gray-800">{{ category.nomCategorie }}</h4>
+                    <a href="{{ path('shop', {'category': category.nomCategorie}) }}" class="text-blue-600 hover:text-blue-800 text-sm mt-2 inline-block">
+                        Voir les produits
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<script>
+// Fonction pour ajouter au panier
+function addToCart(productId, productName, productPrice) {
+    // @ts-nocheck
+    fetch('{{ path('app_panier_ajouter') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            produit_id: productId,
+            quantite: 1
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(`${productName} ajouté au panier !`);
+            updateCartCount(data.panier_count);
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showNotification('Erreur lors de l\'ajout au panier', 'error');
+    });
+}
+
+// Fonction pour afficher une notification
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-md shadow-lg z-50 transform transition-all duration-300 translate-x-full ${
+        type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Animer l'entrée
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+    }, 100);
+    
+    // Supprimer après 3 secondes
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 3000);
+}
+
+// Fonction pour mettre à jour le compteur du panier
+function updateCartCount(count) {
+    const cartCounter = document.getElementById('cartCounter');
+    if (cartCounter) {
+        cartCounter.textContent = count;
+        cartCounter.classList.toggle('hidden', count === 0);
+    }
+}
+
+// Ajouter les event listeners pour les boutons d'ajout au panier
+document.addEventListener('DOMContentLoaded', function() {
+    const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+    
+    addToCartButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = parseInt(this.getAttribute('data-product-id'));
+            const productName = this.getAttribute('data-product-name');
+            const productPrice = parseFloat(this.getAttribute('data-product-price'));
+            addToCart(productId, productName, productPrice);
+        });
+    });
+    
+    updateCartCount();
+
+    const ctaButton = document.getElementById('ctaButton');
+    if (ctaButton) {
+        ctaButton.addEventListener('click', function() {
+            window.location.href = "{{ path('shop') }}";
+        });
+    }
+});
+</script>
+{% endblock %}

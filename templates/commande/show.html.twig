@@ -1,0 +1,154 @@
+{# @ts-nocheck #}
+{% extends 'base.html.twig' %}
+{% block title %}Détails de la commande #{{ commande.id }} - MooDeek{% endblock %}
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-6">
+        <a href="{{ path('app_commande_index') }}" class="inline-flex items-center text-blue-600 hover:text-blue-800">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Retour aux commandes
+        </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    Commande #{{ commande.id }}
+                </h1>
+                <p class="text-gray-600">
+                    Passée le {{ commande.dateCommande|date('d/m/Y à H:i') }}
+                </p>
+            </div>
+            
+            <div class="mt-4 md:mt-0">
+                <span class="px-4 py-2 rounded-full text-sm font-medium
+                    {% if commande.statutCommande == 'en_attente' %}
+                        bg-yellow-100 text-yellow-800
+                    {% elseif commande.statutCommande == 'confirmée' %}
+                        bg-green-100 text-green-800
+                    {% elseif commande.statutCommande == 'expédiée' %}
+                        bg-blue-100 text-blue-800
+                    {% elseif commande.statutCommande == 'livrée' %}
+                        bg-green-100 text-green-800
+                    {% else %}
+                        bg-red-100 text-red-800
+                    {% endif %}">
+                    {{ commande.statutCommande|title }}
+                </span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-1 gap-6">
+            <div>
+                <h3 class="text-lg font-semibold mb-3">Adresse de livraison et facturation</h3>
+                <div class="bg-gray-50 p-4 rounded-md">
+                    <p class="text-gray-700">{{ commande.adresseLivraison }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-blue-50 p-4 rounded-md">
+                <h4 class="font-semibold text-blue-900">Méthode de paiement</h4>
+                <p class="text-blue-700">{{ commande.methodePaiement|title }}</p>
+            </div>
+            
+            <div class="bg-green-50 p-4 rounded-md">
+                <h4 class="font-semibold text-green-900">Montant total</h4>
+                <p class="text-green-700">Frais de livraison : {{ frais_livraison_montant|number_format(2, '.', ' ') }} TND</p>
+                <p class="text-green-700 text-xl font-bold">{{ commande.montantTotal|number_format(2) }} TND</p>
+            </div>
+            
+            {% if commande.dateLivraisonEstimee %}
+                <div class="bg-orange-50 p-4 rounded-md">
+                    <h4 class="font-semibold text-orange-900">Livraison estimée</h4>
+                    <p class="text-orange-700">{{ commande.dateLivraisonEstimee|date('d/m/Y') }}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Articles de la commande -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Articles commandés</h2>
+        
+        <div class="space-y-4">
+            {% for ligne in commande.lignesCommande %}
+                <div class="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
+                    <div class="flex-shrink-0">
+                        <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                            {% if ligne.produit.imageProduit %}
+                                {% set imgPath = ligne.produit.imageProduit starts with 'apploads/' ? ligne.produit.imageProduit : 'apploads/' ~ ligne.produit.imageProduit %}
+                                <img src="{{ asset(imgPath) }}" alt="{{ ligne.produit.nomProduit }}" style="max-width: 100px; max-height: 100px;">
+                            {% else %}
+                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1">
+                        <h4 class="font-semibold text-gray-900">{{ ligne.produit.nomProduit }}</h4>
+                        <p class="text-sm text-gray-600">{{ ligne.produit.description|slice(0, 100) }}{% if ligne.produit.description|length > 100 %}...{% endif %}</p>
+                        {% if ligne.taille %}
+                            <p class="text-sm text-gray-600">Taille: {{ ligne.taille }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="text-right">
+                        <p class="text-sm text-gray-600">Quantité: {{ ligne.quantite }}</p>
+                        <p class="text-sm text-gray-600">Prix unitaire: {{ ligne.prixUnitaire|number_format(2) }} TND</p>
+                        <p class="font-semibold text-gray-900">Sous-total: {{ ligne.sousTotal|number_format(2) }} TND</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="mt-6 flex flex-col sm:flex-row gap-4">
+        {% if commande.statutCommande == 'en_attente' %}
+            <button onclick="annulerCommande({{ commande.id }})" 
+                    class="inline-flex items-center justify-center px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-200">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                Annuler la commande
+            </button>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// @ts-nocheck
+function annulerCommande(commandeId) {
+    if (!confirm('Êtes-vous sûr de vouloir annuler cette commande ?')) {
+        return;
+    }
+    
+    fetch(`/commande/${commandeId}/annuler`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            window.location.href = '{{ path('app_commande_index') }}';
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('Erreur lors de l\'annulation de la commande');
+    });
+}
+</script>
+{% endblock %} 

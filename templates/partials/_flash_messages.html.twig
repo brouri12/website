@@ -1,0 +1,56 @@
+{# Messages Flash #}
+{% for label, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="mb-4 flash-message" id="flash-{{ loop.index }}-{{ label }}">
+            <div class="px-4 py-3 rounded border
+                {% if label == 'success' %}
+                    bg-green-100 border-green-400 text-green-700
+                {% elseif label == 'error' %}
+                    bg-red-100 border-red-400 text-red-700
+                {% elseif label == 'warning' %}
+                    bg-yellow-100 border-yellow-400 text-yellow-700
+                {% elseif label == 'info' %}
+                    bg-blue-100 border-blue-400 text-blue-700
+                {% else %}
+                    bg-gray-100 border-gray-400 text-gray-700
+                {% endif %}">
+                <div class="flex justify-between items-center">
+                    <span>{{ message }}</span>
+                    <button onclick="removeFlashMessage('flash-{{ loop.index }}-{{ label }}')" 
+                            class="ml-2 text-current hover:opacity-75 transition-opacity">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endfor %}
+
+<script>
+// @ts-nocheck
+// Fonction pour supprimer un message flash
+function removeFlashMessage(messageId) {
+    const message = document.getElementById(messageId);
+    if (message) {
+        message.style.transition = 'opacity 0.5s ease-out';
+        message.style.opacity = '0';
+        setTimeout(() => {
+            message.remove();
+        }, 500);
+    }
+}
+
+// Supprimer automatiquement les messages flash après 5 secondes
+document.addEventListener('DOMContentLoaded', function() {
+    const flashMessages = document.querySelectorAll('.flash-message');
+    flashMessages.forEach((message, index) => {
+        setTimeout(() => {
+            if (message && message.parentNode) {
+                removeFlashMessage(message.id);
+            }
+        }, 5000 + (index * 1000)); // Délai progressif pour chaque message
+    });
+});
+</script> 

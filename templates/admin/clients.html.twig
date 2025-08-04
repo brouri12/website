@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+{% block title %}Gestion des clients{% endblock %}
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-6">Clients</h1>
+    <a href="{{ path('admin_dashboard') }}" class="mb-4 inline-block px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Retour au dashboard</a>
+    <div class="overflow-x-auto">
+        <table id="datatable" class="min-w-full bg-white rounded shadow">
+            <thead>
+                <tr>
+                    <th class="px-4 py-2">Nom</th>
+                    <th class="px-4 py-2">Email</th>
+                    <th class="px-4 py-2">Téléphone</th>
+                    <th class="px-4 py-2">Date inscription</th>
+                    <th class="px-4 py-2">Adresses</th>
+                    <th class="px-4 py-2">Nb Commandes</th>
+                    <th class="px-4 py-2">Nb Avis</th>
+                    <th class="px-4 py-2">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in clients %}
+                <tr class="border-t">
+                    <td class="px-4 py-2">{{ client.nom }} {{ client.prenom }}</td>
+                    <td class="px-4 py-2">{{ client.email }}</td>
+                    <td class="px-4 py-2">{{ client.numeroTelephone }}</td>
+                    <td class="px-4 py-2">{{ client.dateInscription ? client.dateInscription|date('d/m/Y') : '' }}</td>
+                    <td class="px-4 py-2">{{ client.adresses|length > 0 ? client.adresses|map(a => a.rue ~ ', ' ~ a.ville)|join(' | ') : '-' }}</td>
+                    <td class="px-4 py-2">{{ client.commandes|length }}</td>
+                    <td class="px-4 py-2">{{ client.avis|length }}</td>
+                    <td class="px-4 py-2">
+                        <a href="{{ path('admin_clients') }}/view/{{ client.id }}" class="text-blue-600 hover:underline">Voir</a> |
+                       
+                        <a href="{{ path('admin_clients') }}/delete/{{ client.id }}" class="text-red-600 hover:underline" onclick="return confirm('Supprimer ce client ?');">Supprimer</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center py-4">Aucun client</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#datatable').DataTable();
+        });
+    </script>
+{% endblock %} 
