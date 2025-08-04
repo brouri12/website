@@ -1,7 +1,8 @@
 services:
   - type: web
     name: symfony-app
-    runtime: php
+    runtime: docker
+    plan: free
     buildCommand: composer install && npm install && npm run build
     startCommand: heroku-php-apache2 public/
     envVars:
