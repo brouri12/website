@@ -29,7 +29,4 @@ databases:
     ipAllowList:
       - source: 0.0.0.0/0
         description: everywhere
-    ipAllowList:
-      - source: 0.0.0.0/0
-        description: everywhere
-
+  
