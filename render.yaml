@@ -4,7 +4,7 @@ services:
     env: php
     buildCommand: composer install && npm install && npm run build
     startCommand: heroku-php-apache2 public/
-    staticPublishPath: ./public/build
+    staticPublishPath: public/build
     envVars:
       - key: APP_ENV
         value: test
