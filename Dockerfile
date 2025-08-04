@@ -20,15 +20,27 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 # Configure ServerName globally
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
+# Create non-root user
+RUN useradd -ms /bin/bash symfony
+
 # Copy application files
-COPY . /var/www/html/
+COPY --chown=symfony:symfony . /var/www/html/
 WORKDIR /var/www/html
 
-# Install Composer and dependencies
+# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-RUN composer install --no-dev --optimize-autoloader
 
-# Set permissions
+# Switch to non-root user
+USER symfony
+
+# Install dependencies
+RUN composer install --no-dev --optimize-autoloader --no-scripts \
+    && composer dump-autoload --optimize --no-dev --classmap-authoritative
+
+# Switch back to root for Apache
+USER root
+
+# Set final permissions
 RUN chown -R www-data:www-data var/
 
 # Apache runs on port 80
