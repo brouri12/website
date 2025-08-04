@@ -23,9 +23,12 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 # Create non-root user
 RUN useradd -ms /bin/bash symfony
 
+# Create symfony directory structure
+RUN mkdir -p var/cache var/log
+
 # Copy application files
 COPY --chown=symfony:symfony . /var/www/html/
-WORKDIR /var/www/html
+WORKDIR /var/www/html/
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -41,7 +44,8 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts \
 USER root
 
 # Set final permissions
-RUN chown -R www-data:www-data var/
+RUN chown -R www-data:www-data var/ \
+    && chmod -R 777 var/
 
 # Apache runs on port 80
 EXPOSE 80
