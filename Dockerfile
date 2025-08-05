@@ -60,16 +60,33 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts \
 # Switch back to root for Apache
 USER root
 
-# Set final permissions
-RUN chown -R www-data:www-data var/ \
-    && chmod -R 777 var/
-# Apache runs on port 80
+# Install additional dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    libfcgi0ldbl \
+    && a2enmod proxy_fcgi
+
+# Configure Apache MPM and PHP-FPM
+RUN a2enmod mpm_event \
+    && echo "StartServers 2" >> /etc/apache2/mods-available/mpm_event.conf \
+    && echo "MinSpareThreads 25" >> /etc/apache2/mods-available/mpm_event.conf \
+    && echo "MaxSpareThreads 75" >> /etc/apache2/mods-available/mpm_event.conf \
+    && echo "ThreadLimit 64" >> /etc/apache2/mods-available/mpm_event.conf \
+    && echo "ThreadsPerChild 25" >> /etc/apache2/mods-available/mpm_event.conf \
+    && echo "MaxRequestWorkers 150" >> /etc/apache2/mods-available/mpm_event.conf \
+    && echo "MaxConnectionsPerChild 0" >> /etc/apache2/mods-available/mpm_event.conf
+
+# Set proper permissions and cleanup
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html \
+    && find /var/www/html/var -type d -exec chmod 777 {} \;
+
 # Apache runs on port 80
 EXPOSE 80
 
-# Add healthcheck
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${PORT}/ || exit 1
+# Improved healthcheck
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:${PORT}/health || exit 1
 
-# Use shell form to handle signals properly
-CMD set -e && apache2-foreground
+# Start Apache with proper error handling
+CMD apache2ctl -D FOREGROUND
