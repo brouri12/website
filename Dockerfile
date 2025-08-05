@@ -54,8 +54,15 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 USER symfony
 
 # Install dependencies
-RUN composer install --no-dev --optimize-autoloader --no-scripts \
-    && composer dump-autoload --optimize --no-dev --classmap-authoritative
+RUN composer install --optimize-autoloader \
+    --no-interaction \
+    --no-progress \
+    && composer require symfony/web-profiler-bundle \
+    && composer dump-autoload --optimize --classmap-authoritative
+
+# Configure Symfony for production
+ENV APP_ENV=prod
+ENV APP_DEBUG=0
 
 # Switch back to root for Apache
 USER root
