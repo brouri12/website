@@ -53,16 +53,18 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Switch to non-root user
 USER symfony
 
-# Install dependencies
-RUN composer install --optimize-autoloader \
-    --no-interaction \
-    --no-progress \
-    && composer require symfony/web-profiler-bundle \
-    && composer dump-autoload --optimize --classmap-authoritative
-
-# Configure Symfony for production
+# Set Composer and Symfony environment
 ENV APP_ENV=prod
 ENV APP_DEBUG=0
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
+# Install dependencies
+RUN composer install --no-dev \
+    --optimize-autoloader \
+    --no-interaction \
+    --no-progress \
+    --prefer-dist \
+    && composer dump-autoload --optimize --no-dev --classmap-authoritative
 
 # Switch back to root for Apache
 USER root
@@ -95,7 +97,7 @@ EXPOSE 80
 
 # Improved healthcheck
 HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:${PORT}/health || exit 1
+    CMD curl -f http://localhost:${PORT}/health.php || exit 1
 
 # Start Apache with proper error handling
 CMD apache2ctl -D FOREGROUND
