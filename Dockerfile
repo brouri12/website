@@ -27,6 +27,12 @@ RUN echo "Listen 0.0.0.0:80" > /etc/apache2/ports.conf \
     && echo "KeepAliveTimeout 120" >> /etc/apache2/apache2.conf \
     && echo "MaxKeepAliveRequests 100" >> /etc/apache2/apache2.conf
 
+# Configure Apache error handling and timeouts
+RUN echo "ErrorLog /dev/stderr" >> /etc/apache2/apache2.conf \
+    && echo "CustomLog /dev/stdout combined" >> /etc/apache2/apache2.conf \
+    && echo "TimeOut 300" >> /etc/apache2/apache2.conf \
+    && echo "GracefulShutdownTimeout 300" >> /etc/apache2/apache2.conf
+
 # Set environment variables
 ENV PORT=80
 ENV HOST=0.0.0.0
@@ -61,4 +67,9 @@ RUN chown -R www-data:www-data var/ \
 # Apache runs on port 80
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:${PORT}/ || exit 1
+
+# Use shell form to handle signals properly
+CMD set -e && apache2-foreground
