@@ -20,6 +20,17 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 # Configure ServerName globally
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
+# Configure Apache for proper binding and timeouts
+RUN echo "Listen 0.0.0.0:80" > /etc/apache2/ports.conf \
+    && echo "Timeout 120" >> /etc/apache2/apache2.conf \
+    && echo "KeepAlive On" >> /etc/apache2/apache2.conf \
+    && echo "KeepAliveTimeout 120" >> /etc/apache2/apache2.conf \
+    && echo "MaxKeepAliveRequests 100" >> /etc/apache2/apache2.conf
+
+# Set environment variables
+ENV PORT=80
+ENV HOST=0.0.0.0
+
 # Create non-root user
 RUN useradd -ms /bin/bash symfony
 
