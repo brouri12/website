@@ -63,18 +63,19 @@ USER root
 # Install additional dependencies
 RUN apt-get update && apt-get install -y \
     curl \
-    libfcgi0ldbl \
-    && a2enmod proxy_fcgi
+    libfcgi0ldbl
 
-# Configure Apache MPM and PHP-FPM
-RUN a2enmod mpm_event \
-    && echo "StartServers 2" >> /etc/apache2/mods-available/mpm_event.conf \
-    && echo "MinSpareThreads 25" >> /etc/apache2/mods-available/mpm_event.conf \
-    && echo "MaxSpareThreads 75" >> /etc/apache2/mods-available/mpm_event.conf \
-    && echo "ThreadLimit 64" >> /etc/apache2/mods-available/mpm_event.conf \
-    && echo "ThreadsPerChild 25" >> /etc/apache2/mods-available/mpm_event.conf \
-    && echo "MaxRequestWorkers 150" >> /etc/apache2/mods-available/mpm_event.conf \
-    && echo "MaxConnectionsPerChild 0" >> /etc/apache2/mods-available/mpm_event.conf
+# Configure Apache MPM prefork
+RUN echo "LoadModule mpm_prefork_module modules/mod_mpm_prefork.so" > /etc/apache2/mods-available/mpm_prefork.load \
+    && a2dismod mpm_event \
+    && a2enmod mpm_prefork \
+    && echo "<IfModule mpm_prefork_module>" > /etc/apache2/mods-available/mpm_prefork.conf \
+    && echo "    StartServers             5" >> /etc/apache2/mods-available/mpm_prefork.conf \
+    && echo "    MinSpareServers          5" >> /etc/apache2/mods-available/mpm_prefork.conf \
+    && echo "    MaxSpareServers         10" >> /etc/apache2/mods-available/mpm_prefork.conf \
+    && echo "    MaxRequestWorkers      150" >> /etc/apache2/mods-available/mpm_prefork.conf \
+    && echo "    MaxConnectionsPerChild   0" >> /etc/apache2/mods-available/mpm_prefork.conf \
+    && echo "</IfModule>" >> /etc/apache2/mods-available/mpm_prefork.conf
 
 # Set proper permissions and cleanup
 RUN chown -R www-data:www-data /var/www/html \
