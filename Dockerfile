@@ -46,7 +46,7 @@ USER root
 # Set final permissions
 RUN chown -R www-data:www-data var/ \
     && chmod -R 777 var/
-
+# Apache runs on port 80
 # Apache runs on port 80
 EXPOSE 80
 
