@@ -40,8 +40,14 @@ ENV HOST=0.0.0.0
 # Create non-root user
 RUN useradd -ms /bin/bash symfony
 
-# Create symfony directory structure
-RUN mkdir -p var/cache var/log
+# Set Composer and Symfony environment
+ENV COMPOSER_ALLOW_SUPERUSER=1
+ENV APP_ENV=prod
+ENV APP_DEBUG=0
+
+# Create symfony directory structure and set permissions
+RUN mkdir -p var/cache var/log \
+    && chown -R symfony:symfony .
 
 # Copy application files
 COPY --chown=symfony:symfony . /var/www/html/
@@ -50,21 +56,16 @@ WORKDIR /var/www/html/
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Switch to non-root user
-USER symfony
-
-# Set Composer and Symfony environment
-ENV APP_ENV=prod
-ENV APP_DEBUG=0
-ENV COMPOSER_ALLOW_SUPERUSER=1
-
-# Install dependencies
+# Install dependencies as root
 RUN composer install --no-dev \
     --optimize-autoloader \
     --no-interaction \
     --no-progress \
     --prefer-dist \
-    && composer dump-autoload --optimize --no-dev --classmap-authoritative
+    || { echo "Composer install failed"; exit 1; }
+
+# Switch to non-root user
+USER symfony
 
 # Switch back to root for Apache
 USER root
